@@ -1,5 +1,6 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <string.h>
 
 #include "predicates.h"
 
@@ -34,6 +35,54 @@ static int parse_point(PyObject *obj, double *out, Py_ssize_t expected_len)
   return 1;
 }
 
+static int as_double(PyObject *obj, double *out)
+{
+  if (PyFloat_CheckExact(obj)) {
+    *out = PyFloat_AS_DOUBLE(obj);
+    return 1;
+  }
+  *out = PyFloat_AsDouble(obj);
+  return !PyErr_Occurred();
+}
+
+static int parse_2d_points_buffer(PyObject *obj, Py_buffer *view, const double **data, Py_ssize_t *n)
+{
+  if (PyObject_GetBuffer(obj, view, PyBUF_FORMAT | PyBUF_ND | PyBUF_STRIDES | PyBUF_C_CONTIGUOUS) != 0) {
+    return 0;
+  }
+
+  if (view->itemsize != (Py_ssize_t) sizeof(double) ||
+      view->format == NULL ||
+      strcmp(view->format, "d") != 0) {
+    PyErr_SetString(PyExc_TypeError, "buffer must have float64 ('d') format");
+    PyBuffer_Release(view);
+    return 0;
+  }
+
+  if (view->ndim == 2) {
+    if (view->shape[1] != 2) {
+      PyErr_SetString(PyExc_ValueError, "buffer must have shape (N, 2)");
+      PyBuffer_Release(view);
+      return 0;
+    }
+    *n = view->shape[0];
+  } else if (view->ndim == 1) {
+    if (view->shape[0] % 2 != 0) {
+      PyErr_SetString(PyExc_ValueError, "flat buffer length must be divisible by 2");
+      PyBuffer_Release(view);
+      return 0;
+    }
+    *n = view->shape[0] / 2;
+  } else {
+    PyErr_SetString(PyExc_ValueError, "buffer must be 1D (2*N) or 2D (N,2)");
+    PyBuffer_Release(view);
+    return 0;
+  }
+
+  *data = (const double *) view->buf;
+  return 1;
+}
+
 static PyObject *py_orient2d(PyObject *self, PyObject *args)
 {
   PyObject *pa, *pb, *pc;
@@ -46,6 +95,92 @@ static PyObject *py_orient2d(PyObject *self, PyObject *args)
     return NULL;
   }
   return PyFloat_FromDouble(orient2d(a, b, c));
+}
+
+static PyObject *py_orient2d_xy(PyObject *self, PyObject *const *args, Py_ssize_t nargs)
+{
+  double ax, ay, bx, by, cx, cy;
+  double a[2], b[2], c[2];
+
+  if (nargs != 6) {
+    return PyErr_Format(PyExc_TypeError,
+                        "orient2d_xy() takes 6 positional arguments (%zd given)",
+                        nargs);
+  }
+
+  if (!as_double(args[0], &ax) || !as_double(args[1], &ay) ||
+      !as_double(args[2], &bx) || !as_double(args[3], &by) ||
+      !as_double(args[4], &cx) || !as_double(args[5], &cy)) {
+    return NULL;
+  }
+
+  a[0] = ax; a[1] = ay;
+  b[0] = bx; b[1] = by;
+  c[0] = cx; c[1] = cy;
+  return PyFloat_FromDouble(orient2d(a, b, c));
+}
+
+static PyObject *py_orient2d_batch(PyObject *self, PyObject *args)
+{
+  PyObject *pa, *pb, *pc;
+  Py_buffer va, vb, vc;
+  const double *a, *b, *c;
+  Py_ssize_t na, nb, nc;
+  Py_ssize_t i;
+  PyObject *out = NULL, *view = NULL, *shape = NULL, *casted = NULL;
+  double *out_data;
+
+  va.obj = NULL; vb.obj = NULL; vc.obj = NULL;
+
+  if (!PyArg_ParseTuple(args, "OOO", &pa, &pb, &pc)) {
+    return NULL;
+  }
+
+  if (!parse_2d_points_buffer(pa, &va, &a, &na) ||
+      !parse_2d_points_buffer(pb, &vb, &b, &nb) ||
+      !parse_2d_points_buffer(pc, &vc, &c, &nc)) {
+    goto cleanup;
+  }
+
+  if (na != nb || na != nc) {
+    PyErr_SetString(PyExc_ValueError, "all inputs must contain the same number of points");
+    goto cleanup;
+  }
+
+  out = PyByteArray_FromStringAndSize(NULL, na * (Py_ssize_t) sizeof(double));
+  if (out == NULL) {
+    goto cleanup;
+  }
+
+  out_data = (double *) PyByteArray_AS_STRING(out);
+  for (i = 0; i < na; i++) {
+    out_data[i] = orient2d(a + 2 * i, b + 2 * i, c + 2 * i);
+  }
+
+  view = PyMemoryView_FromObject(out);
+  if (view == NULL) {
+    goto cleanup;
+  }
+  shape = Py_BuildValue("(n)", na);
+  if (shape == NULL) {
+    goto cleanup;
+  }
+  casted = PyObject_CallMethod(view, "cast", "sO", "d", shape);
+
+cleanup:
+  if (va.obj != NULL) {
+    PyBuffer_Release(&va);
+  }
+  if (vb.obj != NULL) {
+    PyBuffer_Release(&vb);
+  }
+  if (vc.obj != NULL) {
+    PyBuffer_Release(&vc);
+  }
+  Py_XDECREF(shape);
+  Py_XDECREF(view);
+  Py_XDECREF(out);
+  return casted;
 }
 
 static PyObject *py_orient3d(PyObject *self, PyObject *args)
@@ -168,6 +303,8 @@ static PyObject *py_inspherefast(PyObject *self, PyObject *args)
 
 static PyMethodDef predicates_methods[] = {
   {"orient2d", py_orient2d, METH_VARARGS, "Robust orientation test in 2D."},
+  {"orient2d_xy", (PyCFunction) py_orient2d_xy, METH_FASTCALL, "Fast scalar orientation test in 2D using flat coordinates."},
+  {"orient2d_batch", py_orient2d_batch, METH_VARARGS, "Batched orientation test in 2D for float64 buffers shaped (N,2) or flat (2*N)."},
   {"orient3d", py_orient3d, METH_VARARGS, "Robust orientation test in 3D."},
   {"incircle", py_incircle, METH_VARARGS, "Robust in-circle test in 2D."},
   {"insphere", py_insphere, METH_VARARGS, "Robust in-sphere test in 3D."},

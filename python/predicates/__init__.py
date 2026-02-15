@@ -4,6 +4,8 @@ from ._predicates import (
     insphere,
     inspherefast,
     orient2d,
+    orient2d_batch,
+    orient2d_xy,
     orient2dfast,
     orient3d,
     orient3dfast,
@@ -11,6 +13,8 @@ from ._predicates import (
 
 __all__ = [
     "orient2d",
+    "orient2d_xy",
+    "orient2d_batch",
     "orient3d",
     "incircle",
     "insphere",

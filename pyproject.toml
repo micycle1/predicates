@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=78.1.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "predicates"
+version = "1.0.0"
+description = "Python bindings for robust geometric predicates"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "micycle1" }]
+license = { text = "Public Domain" }
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
+[tool.uv]
+dev-dependencies = ["pytest>=8.0"]

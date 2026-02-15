@@ -1,1 +1,0 @@
-/usr/bin/c++  -std=c++11 -Wall -Wl,--dependency-file=CMakeFiles/incircle.dir/link.d CMakeFiles/incircle.dir/incircle.cpp.o -o ../Bin/incircle  -Wl,-rpath,/home/runner/work/predicates/predicates/build/Bin ../Bin/libpredicates.so -lm

@@ -1,4 +1,0 @@
-orient2d 1 0.0204685
-incircle 1 0.773
-orient3d 1 0.0013042
----

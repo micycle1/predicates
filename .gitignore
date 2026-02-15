@@ -19,4 +19,5 @@ CMakeLists.txt.user
 /linux/
 .idea
 /Debug/
+/build/
 .ctags

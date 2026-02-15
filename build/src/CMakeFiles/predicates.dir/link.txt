@@ -1,1 +1,0 @@
-/usr/bin/cc -fPIC  -std=c99 -Wall -Wl,--dependency-file=CMakeFiles/predicates.dir/link.d -shared -Wl,-soname,libpredicates.so -o ../Bin/libpredicates.so CMakeFiles/predicates.dir/constants.c.o CMakeFiles/predicates.dir/predicates.c.o CMakeFiles/predicates.dir/random.c.o CMakeFiles/predicates.dir/printing.c.o  -Wl,-rpath,::::::::::::::

@@ -1,3 +1,14 @@
+Metadata-Version: 2.4
+Name: predicates
+Version: 1.0.0
+Summary: Python bindings for robust geometric predicates
+Author: micycle1
+License: Public Domain
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Provides-Extra: test
+Requires-Dist: pytest>=8.0; extra == "test"
+
 # predicates
 
 This library provides code for performing robust geometric computations using adaptive-precision floating-point arithmetic.

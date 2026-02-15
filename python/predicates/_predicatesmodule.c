@@ -100,7 +100,6 @@ static PyObject *py_orient2d(PyObject *self, PyObject *args)
 static PyObject *py_orient2d_xy(PyObject *self, PyObject *const *args, Py_ssize_t nargs)
 {
   double ax, ay, bx, by, cx, cy;
-  double a[2], b[2], c[2];
 
   if (nargs != 6) {
     return PyErr_Format(PyExc_TypeError,
@@ -114,9 +113,9 @@ static PyObject *py_orient2d_xy(PyObject *self, PyObject *const *args, Py_ssize_
     return NULL;
   }
 
-  a[0] = ax; a[1] = ay;
-  b[0] = bx; b[1] = by;
-  c[0] = cx; c[1] = cy;
+  double a[2] = {ax, ay};
+  double b[2] = {bx, by};
+  double c[2] = {cx, cy};
   return PyFloat_FromDouble(orient2d(a, b, c));
 }
 
@@ -127,7 +126,7 @@ static PyObject *py_orient2d_batch(PyObject *self, PyObject *args)
   const double *a, *b, *c;
   Py_ssize_t na, nb, nc;
   Py_ssize_t i;
-  PyObject *out = NULL, *view = NULL, *shape = NULL, *casted = NULL;
+  PyObject *out = NULL, *view = NULL, *casted = NULL;
   double *out_data;
 
   va.obj = NULL; vb.obj = NULL; vc.obj = NULL;
@@ -161,11 +160,7 @@ static PyObject *py_orient2d_batch(PyObject *self, PyObject *args)
   if (view == NULL) {
     goto cleanup;
   }
-  shape = Py_BuildValue("(n)", na);
-  if (shape == NULL) {
-    goto cleanup;
-  }
-  casted = PyObject_CallMethod(view, "cast", "sO", "d", shape);
+  casted = PyObject_CallMethod(view, "cast", "s(n)", "d", na);
 
 cleanup:
   if (va.obj != NULL) {
@@ -177,7 +172,6 @@ cleanup:
   if (vc.obj != NULL) {
     PyBuffer_Release(&vc);
   }
-  Py_XDECREF(shape);
   Py_XDECREF(view);
   Py_XDECREF(out);
   return casted;

@@ -1,0 +1,48 @@
+Start testing: Feb 15 16:53 UTC
+----------------------------------------------------------
+1/3 Testing: orient2d
+1/3 Test: orient2d
+Command: "/home/runner/work/predicates/predicates/build/Bin/orient2d"
+Directory: /home/runner/work/predicates/predicates/build/test
+"orient2d" start time: Feb 15 16:53 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"orient2d" end time: Feb 15 16:53 UTC
+"orient2d" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/3 Testing: incircle
+2/3 Test: incircle
+Command: "/home/runner/work/predicates/predicates/build/Bin/incircle"
+Directory: /home/runner/work/predicates/predicates/build/test
+"incircle" start time: Feb 15 16:53 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.77 sec
+----------------------------------------------------------
+Test Passed.
+"incircle" end time: Feb 15 16:53 UTC
+"incircle" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/3 Testing: orient3d
+3/3 Test: orient3d
+Command: "/home/runner/work/predicates/predicates/build/Bin/orient3d"
+Directory: /home/runner/work/predicates/predicates/build/test
+"orient3d" start time: Feb 15 16:53 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"orient3d" end time: Feb 15 16:53 UTC
+"orient3d" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Feb 15 16:53 UTC

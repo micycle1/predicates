@@ -1,0 +1,1 @@
+/usr/bin/c++  -std=c++11 -Wall -Wl,--dependency-file=CMakeFiles/orient2d.dir/link.d CMakeFiles/orient2d.dir/orient2d.cpp.o -o ../Bin/orient2d  -Wl,-rpath,/home/runner/work/predicates/predicates/build/Bin ../Bin/libpredicates.so -lm

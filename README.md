@@ -39,6 +39,19 @@ To run the unit tests:
 
 Demo programs are optionally built if you have `zlib` and `libpng`.
 
+## Python bindings
+
+This repository also includes Python bindings (module name: `predicates`) built from the same C sources.
+
+Using [uv](https://docs.astral.sh/uv/):
+
+    uv sync
+    uv run pytest python/tests
+
+Or with pip:
+
+    python -m pip install .
+
 
 ## Licensing
 
